@@ -204,8 +204,9 @@ fn benchTargets(
     var map = std.StringHashMap(*std.Build.Step.Compile).init(b.allocator);
 
     // Open the directory
-    const c_dir_path = "src/bench";
-    var c_dir = try std.fs.cwd().openDir(comptime thisDir() ++ "/" ++ c_dir_path, .{ .iterate = true });
+    const c_dir_path = b.path("src/bench").getPath(b);
+
+    var c_dir = try std.fs.cwd().openDir(c_dir_path, .{ .iterate = true });
     defer c_dir.close();
 
     // Go through and add each as a step
@@ -218,7 +219,8 @@ fn benchTargets(
         // Name of the app and full path to the entrypoint.
         const name = entry.name[0..index];
         const path = try std.fs.path.join(b.allocator, &[_][]const u8{
-            c_dir_path,
+            "src",
+            "bench",
             entry.name,
         });
 
@@ -261,7 +263,7 @@ fn exampleTargets(
     if (!install) return;
 
     // Open the directory
-    const c_dir_path = (comptime thisDir()) ++ "/examples";
+    const c_dir_path = b.path("examples").getPath(b);
     var c_dir = try std.fs.cwd().openDir(c_dir_path, .{ .iterate = true });
     defer c_dir.close();
 
@@ -340,9 +342,4 @@ fn exampleTargets(
             return error.InvalidExampleName;
         }
     }
-}
-
-/// Path to the directory with the build.zig.
-fn thisDir() []const u8 {
-    return std.fs.path.dirname(@src().file) orelse unreachable;
 }
